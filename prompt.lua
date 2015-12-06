@@ -5,20 +5,9 @@ local colors = {
     normal_green_on_black = "\x1b[0;32;40m",
     bold_yellow_on_black = "\x1b[1;33;40m",
     normal_yellow_on_black = "\x1b[0;33;40m",
-    gitclean = "\x1b[1;37;40m",
-    gitdirty = "\x1b[31;1m",
+    git_clean = "\x1b[1;37;40m",
+    git_dirty = "\x1b[31;1m",
 }
-
----
- -- Gets the current git status in short format
- -- @return {string}
----
-function get_short_status()
-    local file = assert(io.popen("git status -s"))
-    local status = file:read('*all')
-    file:close()
-    return status
-end
 
 ---
  -- Finds out the git current branch
@@ -44,6 +33,17 @@ function get_git_status()
 end
 
 ---
+ -- Gets the current git status in short format
+ -- @return {string}
+---
+function get_git_full_status()
+    local file = assert(io.popen("git status -s"))
+    local status = file:read('*all')
+    file:close()
+    return status
+end
+
+---
  -- If we are in a git directory gets the
  -- status and sets the prompt string accordingly
  -- @return {string}
@@ -54,12 +54,12 @@ function git_prompt(path)
     if branch then
         -- Has branch => therefore it is a git folder, now figure out status
         if get_git_status() then
-            color = colors.gitclean
+            color = colors.git_clean
         else
-            color = colors.gitdirty
+            color = colors.git_dirty
         end
 
-        return color.."("..branch..")".."\n"..colors.normal_white_on_black..get_short_status()
+        return color.."("..branch..")".."\n"..colors.normal_white_on_black..get_git_full_status()
     end
 
     return ""
@@ -71,15 +71,15 @@ function lambda_prompt_filter()
     local file = assert(io.popen('cd'))
     local path = file:read('*all'):match("^(.+)[\r\n]$")
     if path then
-        path = colors.normal_green_on_black .. path
+        path = colors.normal_green_on_black .. path .. " "
     end
     file:close()
 
     local git_status = git_prompt(path)
 
-    local lambda_prompt = colors.normal_yellow_on_black .. "λ"
+    local lambda_prompt = colors.normal_yellow_on_black .. "λ "
 
-    clink.prompt.value = path .. " " .. git_status .. lambda_prompt .. " "
+    clink.prompt.value = path .. git_status .. lambda_prompt
 end
 
 clink.prompt.register_filter(lambda_prompt_filter, 50)
