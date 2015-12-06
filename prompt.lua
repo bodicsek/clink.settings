@@ -66,17 +66,26 @@ function git_prompt(path)
 
 end
 
-function lambda_prompt_filter()
+---
+ -- Tries to retrieve the current path
+ -- @return {string}
+---
+function pwd()
+    local path = ""
 
     local file = assert(io.popen('cd'))
-    local path = file:read('*all'):match("^(.+)[\r\n]$")
-    if path then
-        path = colors.normal_green_on_black .. path .. " "
+    local cd = file:read('*all'):match("^(.+)[\r\n]$")
+    if cd then
+        path = colors.normal_green_on_black .. cd .. " "
     end
     file:close()
 
-    local git_status = git_prompt(path)
+    return path
+end
 
+function lambda_prompt_filter()
+    local path = pwd()
+    local git_status = git_prompt(path)
     local lambda_prompt = colors.normal_yellow_on_black .. "λ "
 
     clink.prompt.value = path .. git_status .. lambda_prompt
